@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Хоккейные звенья</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 16px;
+            background: #f5f5f5;
+        }
+        h1 {
+            font-size: 24px;
+            color: #1e3c72;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .position-block {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .position-title {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        .slots {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .slot {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .slot.filled {
+            background: #e8f5e9;
+            border-color: #4CAF50;
+        }
+        .slot.empty {
+            border-style: dashed;
+            color: #999;
+        }
+        .slot:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .row-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .badge {
+            font-size: 10px;
+            color: #666;
+            margin-left: 4px;
+        }
+        .save-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 16px;
+            right: 16px;
+            background: #1e3c72;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(30,60,114,0.3);
+        }
+    </style>
+</head>
+<body>
+    <h1>🏒 5-on-5 Lines</h1>
+
+    <!-- Нападение -->
+    <div class="position-block">
+        <div class="position-title">Нападение</div>
+        
+        <!-- Звено 1 -->
+        <div class="row">
+            <div class="slot filled" data-pos="LW" data-line="1">
+                M. Rantanen <span class="badge">+RW</span>
+            </div>
+            <div class="slot filled" data-pos="C" data-line="1">
+                N. MacKinnon <span class="badge">C+LW</span>
+            </div>
+            <div class="slot empty" data-pos="RW" data-line="1">
+                RW1
+            </div>
+        </div>
+        
+        <!-- Звено 2 -->
+        <div class="row">
+            <div class="slot empty" data-pos="LW" data-line="2">LW2</div>
+            <div class="slot empty" data-pos="C" data-line="2">C2</div>
+            <div class="slot empty" data-pos="RW" data-line="2">RW2</div>
+        </div>
+        
+        <!-- Звено 3 -->
+        <div class="row">
+            <div class="slot empty" data-pos="LW" data-line="3">LW3</div>
+            <div class="slot empty" data-pos="C" data-line="3">C3</div>
+            <div class="slot empty" data-pos="RW" data-line="3">RW3</div>
+        </div>
+    </div>
+
+    <!-- Защита -->
+    <div class="position-block">
+        <div class="position-title">Защита</div>
+        
+        <!-- Пара 1 -->
+        <div class="row row-2">
+            <div class="slot empty" data-pos="LD" data-pair="1">LD1</div>
+            <div class="slot empty" data-pos="RD" data-pair="1">RD1</div>
+        </div>
+        
+        <!-- Пара 2 -->
+        <div class="row row-2">
+            <div class="slot empty" data-pos="LD" data-pair="2">LD2</div>
+            <div class="slot empty" data-pos="RD" data-pair="2">RD2</div>
+        </div>
+    </div>
+
+    <!-- Кнопка сохранения -->
+    <button class="save-btn" onclick="saveLineup()">💾 Сохранить расстановку</button>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Инициализация Telegram WebApp
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем на весь экран
+        
+        // Показываем основную кнопку Telegram
+        tg.MainButton.setText("Закрыть");
+        tg.MainButton.show();
+        
+        // Обработка клика по слотам
+        document.querySelectorAll('.slot').forEach(slot => {
+            slot.addEventListener('click', function() {
+                if (this.classList.contains('filled')) {
+                    // Если слот занят - спрашиваем, убрать ли игрока
+                    if (confirm(`Убрать ${this.textContent.trim()}?`)) {
+                        this.classList.remove('filled');
+                        // Возвращаем исходный текст
+                        if (this.dataset.pos === 'LW') this.textContent = 'LW' + (this.dataset.line || '');
+                        else if (this.dataset.pos === 'C') this.textContent = 'C' + (this.dataset.line || '');
+                        else if (this.dataset.pos === 'RW') this.textContent = 'RW' + (this.dataset.line || '');
+                        else if (this.dataset.pos === 'LD') this.textContent = 'LD' + (this.dataset.pair || '');
+                        else if (this.dataset.pos === 'RD') this.textContent = 'RD' + (this.dataset.pair || '');
+                        this.classList.add('empty');
+                    }
+                } else {
+                    // Если слот пустой - добавляем игрока
+                    let playerName = prompt('Введите имя игрока:', '');
+                    if (playerName) {
+                        this.textContent = playerName;
+                        this.classList.remove('empty');
+                        this.classList.add('filled');
+                    }
+                }
+            });
+        });
+        
+        // Функция сохранения расстановки
+        function saveLineup() {
+            let lineup = {
+                forwards: [],
+                defense: []
+            };
+            
+            // Собираем нападающих
+            document.querySelectorAll('[data-line]').forEach(slot => {
+                if (slot.classList.contains('filled')) {
+                    lineup.forwards.push({
+                        position: slot.dataset.pos,
+                        line: slot.dataset.line,
+                        player: slot.textContent.replace(/<span.*<\/span>/, '').trim()
+                    });
+                }
+            });
+            
+            // Собираем защитников
+            document.querySelectorAll('[data-pair]').forEach(slot => {
+                if (slot.classList.contains('filled')) {
+                    lineup.defense.push({
+                        position: slot.dataset.pos,
+                        pair: slot.dataset.pair,
+                        player: slot.textContent.trim()
+                    });
+                }
+            });
+            
+            // Отправляем данные в Telegram
+            tg.sendData(JSON.stringify(lineup));
+            tg.showAlert('✅ Расстановка сохранена!');
+        }
+        
+        // Закрытие по кнопке Telegram
+        tg.onEvent('mainButtonClicked', function() {
+            tg.close();
+        });
+    </script>
+</body>
+</html>
